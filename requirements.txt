@@ -1,0 +1,17 @@
+BeautifulSoup==3.2.1
+JPype==0.5.4.2
+PIL==1.1.7
+Pillow==2.1.0
+PyYAML==3.10
+boilerpipe==1.2.0
+chardet==2.1.1
+cssselect==0.8
+gensim==0.8.7
+goose==1.0.0
+jieba==0.30
+lxml==3.2.1
+nltk==2.0.4
+numpy==1.7.1
+pymongo==2.6.2
+scipy==0.12.1
+wsgiref==0.1.2
