@@ -1,4 +1,6 @@
 import csv
+import hashlib
+from pprint import pprint
 from string import lower
 from boilerpipe.extract import Extractor
 import datetime
@@ -9,6 +11,10 @@ import nltk
 from nltk.corpus import stopwords
 import re
 from pymongo import MongoClient
+from scipy.lib.six import iteritems
+from topic import Topic
+from topicset import TopicsSet
+from utils import etime, print_etime
 
 STOP_WORDS = "able,about,across,after,all,almost,also,am,among,an,and,any,are,as,at,be,because,been,but,by,can,cannot,could,dear,did,do,does,either,else,ever,every,for,from,get,got,had,has,have,he,her,hers,him,his,how,however,i,if,in,into,is,it,its,just,least,let,like,likely,may,me,might,most,must,my,neither,no,nor,not,of,off,often,on,only,or,other,our,own,rather,said,say,says,she,should,since,so,some,than,that,the,their,them,then,there,these,they,this,tis,to,too,twas,us,wants,was,we,were,what,when,where,which,while,who,whom,why,will,with,would,yet,you,your".split(",")
 
@@ -26,6 +32,25 @@ stopwords_eng = stopwords.words('english') + ['\'s', '\'d', '\'t', '\'re']
 punctuation = ['.', ',', '!', '?', ':', '(', ')', ';', '-', '+', '[', ']', '&', '#', '<', '>', '*', '--']
 bad_symbols = ['``', '\'\'', '"', '\'']
 useless_words = ['also', 'would', 'say', 'says', 'many', 'new', 'could', 'last', 'first', 'n\'t']
+
+
+def extract_topics_from_url(db):
+    articles = db.articles.find()
+    topic_re = re.compile('\/\d+\/(?P<topic>[a-z]+)\/(?P<subtopic>[a-z]+)?\/')
+    topics = TopicsSet()
+    for article in articles:
+        match = topic_re.search(article['url'])
+        if match:
+            t = Topic(match.group('topic'))
+            if t not in topics:
+                topics.add(t)
+            else:
+                t = topics.getelement(t)
+            subtopic = match.group('subtopic')
+            if subtopic:
+                t.add_topic(subtopic)
+
+    return topics
 
 def clean(text):
     # str = remove_nonalphanumeric(str)
@@ -156,9 +181,19 @@ def __main__():
     # load corpus iterator
     # mm = gensim.corpora.MmCorpus('data/corpus.mm')
 
-    lda = gensim.models.ldamodel.LdaModel(corpus=mm, id2word=id2word, num_topics=100, update_every=1, chunksize=1000, passes=10)
-    topics = lda.print_topics(50)
+    start = etime()
+    lda = gensim.models.ldamodel.LdaModel(corpus=mm, id2word=id2word, num_topics=33, update_every=1, chunksize=1000, passes=100)
+    print_etime(start)
+    topics = lda.print_topics(33)
     for idx, t in enumerate(topics):
-        print idx, t
+        print
+        print idx
+        pprint(t, width=200)
+        print
+
+    # topics = extract_topics_from_url(db)
+    #
+    # print topics.get_count()
+    # pprint(list(topics), width=100)
 
 __main__()
